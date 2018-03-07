@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport"   content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>124周年校庆</title>
+    <link rel="stylesheet" href="/static/dist/css/style.css">
+</head>
+<body>
+    <div class="page-1">
+        <img src="/static/dist/img/1-min.png" class="img-1">
+        <span class="transparent-btn1"></span>
+        <span class="transparent-btn2"></span>
+    </div>
+    <div class="page-2">
+        <img src="/static/dist/img/2-min.png" class="img-2">
+        <span class="transparent-btn3"></span>
+    </div>
+    <div class="page-3">
+        <img src="/static/dist/img/3-min.png" class="img-3">
+        <span class="transparent-btn4"></span>
+    </div>
+    <div class="game">
+        <img src="/static/dist/img/game-background-min.png" class="img-4">
+        <div id="cont">
+            <div id="main">
+            </div>
+        </div>
+        <img src="/static/dist/img/fox-min.png" class="fox">
+        <div class="share-mask">
+            <span class="mask"></span>
+            <span class="score">0</span>
+            <span class="onemore"></span>
+            <span class="share-btn"></span>
+            <img src="/static/dist/img/share-min.png" class="share">
+        </div>
+        </div>
+    </div>
+</body>
+<script src="http://code.jquery.com/jquery-3.2.1.min.js"
+        integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+        crossorigin="anonymous">
+</script>
+<script src="/static/dist/js/main.js"></script>
+<script>
+    var main=document.getElementById('main');
+    var clock = null;
+    var state = true;
+    var speed = 3;
+    var max_speed = 20;
+    var audio = document.createElement('audio');
+    audio.src="/static/dist/audio/1.mp3";
+    function getStyle(el, attr){
+        return el.currentStyle?el.currentStyle[attr]:getComputedStyle(el,null)[attr];
+    }
+    //造div
+    function cDiv(className) {
+        var div = document.createElement('div');
+        if(className){
+            div.className= className;
+        }
+        return div;
+    }
+    //造一行，即连造4个小div
+    function cRow() {
+        //造一个0-3之间的随机数
+        var ind = Math.floor(Math.random()*4);
+        //造一个行div
+        var row=cDiv('row');
+        for(var i=0;i<4;i++) {
+            if (i == ind) {
+                row.appendChild(cDiv('sakura'));
+            } else if (i == ind + 2 || i == ind - 2) {
+                row.appendChild(cDiv('osmanthus'));
+            } else {
+                row.appendChild(cDiv('besom'));
+            }
+        }
+        //把行row塞到main里
+        if(main.firstChild){
+            main.insertBefore(row,main.firstChild);
+        }else{
+            main.appendChild(row);
+        }
+    }
+    function move(){
+        var top = parseInt(getStyle(main,'top'));
+        top += speed;
+        main.style.top = top + 'px';
+        if(top >= 0){
+            cRow();
+            main.style.top='-130px';
+            //判断最后一行是否含有黑块
+            var judge1 = main.lastChild.pass;
+            var judge2 = main.childNodes[main.children.length-2].pass;
+            if(judge1 != true && main.children.length<=5 || judge2 != true && main.children.length == 6){
+                fail(audio);
+            }
+        }
+        if(main.children.length>=6) {
+            main.removeChild(main.lastChild);
+        }
+    }
+    function init() {
+        audio.play();
+        for(var i=0; i<4; i++){
+            cRow();
+        }
+        var score = 0;
+        main.onclick = function(ev){
+            ev.target = ev.target || ev.srcElement;
+            if(state == false){
+                fail(audio);
+            }else if(ev.target.className == 'besom' || ev.target.className == 'osmanthus'){
+                fail(audio);
+            } else if (ev.target.className == 'sakura'){
+                ev.target.className = 'pass';
+                ev.target.parentNode.pass = true;
+                score += 1;
+                if (score % 3==0){
+                    speed += 1;
+                }
+                if (speed >= max_speed){
+                    speed = max_speed;
+                }
+                if (score == 124){
+                    fail(audio);
+                }
+                $('.score').html(score);
+                main.removeChild(main.childNodes[main.children.length]);
+            }
+        };
+        clock = window.setInterval('move();',40);
+    }
+    function fail(audio){
+        clearInterval(clock);
+        state = false;
+        speed = 0;
+        audio.pause();
+        audio.currentTime = 0;
+        $('.share-mask').css('display', 'block');
+    }
+</script>
+</html>
